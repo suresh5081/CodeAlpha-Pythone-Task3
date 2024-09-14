@@ -1,0 +1,60 @@
+import os
+import shutil
+import pandas as pd
+import glob
+import datetime
+
+# 1. File Organization: Organize files by extension
+def organize_files_by_extension(folder_path):
+    for filename in os.listdir(folder_path):
+        file_ext = filename.split('.')[-1]
+        new_folder = os.path.join(folder_path, file_ext)
+
+        if not os.path.exists(new_folder):
+            os.makedirs(new_folder)
+        
+        shutil.move(os.path.join(folder_path, filename), os.path.join(new_folder, filename))
+
+    print(f"Files organized by extension in {folder_path}")
+
+# 2. Data Cleaning: Clean CSV data by removing duplicates and handling missing values
+def clean_csv_data(file_path, output_path):
+    df = pd.read_csv(file_path)
+
+    # Remove duplicates
+    df.drop_duplicates(inplace=True)
+
+    # Handle missing values (e.g., fill with median or mean)
+    df.fillna(df.median(), inplace=True)
+
+    df.to_csv(output_path, index=False)
+    print(f"Data cleaned and saved to {output_path}")
+
+# 3. System Maintenance: Delete files older than a certain number of days
+def delete_old_files(folder_path, days=30):
+    cutoff_date = datetime.datetime.now() - datetime.timedelta(days=days)
+
+    for root, dirs, files in os.walk(folder_path):
+        for file in files:
+            file_path = os.path.join(root, file)
+            file_mod_time = datetime.datetime.fromtimestamp(os.path.getmtime(file_path))
+
+            if file_mod_time < cutoff_date:
+                os.remove(file_path)
+                print(f"Deleted: {file_path}")
+
+# Main function to run the tasks
+def main():
+    # Example usage:
+    folder_to_organize = "path/to/folder"
+    organize_files_by_extension(folder_to_organize)
+
+    csv_file_to_clean = "path/to/data.csv"
+    cleaned_output_path = "path/to/cleaned_data.csv"
+    clean_csv_data(csv_file_to_clean, cleaned_output_path)
+
+    folder_to_clean = "path/to/folder"
+    delete_old_files(folder_to_clean, days=60)
+
+if __name__ == "__main__":
+    main()
